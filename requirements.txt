@@ -1,0 +1,9 @@
+numpy
+pandas
+sgp4
+scikit-learn
+xgboost
+matplotlib
+plotly
+requests
+tqdm
