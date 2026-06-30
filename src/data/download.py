@@ -57,7 +57,8 @@ def download_json(url: str) -> list[dict]:
     requests.HTTPError
         Si le serveur retourne une erreur HTTP.
     """
-
+    
+    
     # Envoi de la requête HTTP
     response = requests.get(
         url,
@@ -67,6 +68,12 @@ def download_json(url: str) -> list[dict]:
 
     # Vérifie que la requête a réussi
     response.raise_for_status()
+
+    if "application/json" not in response.headers.get("Content-Type", ""):
+        print(response.text[:500])
+        raise ValueError(
+            "Le serveur n'a pas renvoyé un document JSON."
+        )
 
     # Conversion de la réponse en objet Python
     return response.json()
@@ -150,6 +157,7 @@ def download_dataset(url: str, output_file: Path) -> None:
     save_json(data, output_file)
 
     print(f"Fichier enregistré : {output_file}")
+    print(f"Taille du fichier : {output_file.stat().st_size:,} octets")
     print("Téléchargement terminé.")
     print("=" * 60)
 
@@ -160,20 +168,32 @@ def download_dataset(url: str, output_file: Path) -> None:
 def main() -> None:
     """
     Point d'entrée du programme.
+    Télécharge tous les datasets définis dans DATASET_SOURCES.
     """
 
     from src.config import (
-        CELESTRAK_ACTIVE_URL,
+        DATASET_SOURCES,
         RAW_DATA_DIR,
     )
 
-    output_file = RAW_DATA_DIR / "active_satellites.json"
+    print("=" * 60)
+    print("Téléchargement des jeux de données")
+    print("=" * 60)
 
-    download_dataset(
-        url=CELESTRAK_ACTIVE_URL,
-        output_file=output_file,
-    )
+    for source in DATASET_SOURCES:
+
+        print()
+
+        download_dataset(
+            url=source["url"],
+            output_file=RAW_DATA_DIR / source["filename"],
+        )
+
+    print()
+    print("=" * 60)
+    print("Tous les téléchargements sont terminés.")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
-    main()
+        main()
