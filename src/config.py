@@ -119,6 +119,20 @@ NUMERICAL_FEATURES = [
     "MEAN_MOTION_DDOT",
 ]
 
+TOP_5_FEATURES = [
+    "ECCENTRICITY",
+    "INCLINATION",
+    "MEAN_MOTION",
+    "BSTAR",
+    "MEAN_MOTION_DOT",
+]
+
+TOP_3_FEATURES = [
+    "ECCENTRICITY",
+    "INCLINATION",
+    "MEAN_MOTION",
+]
+
 # Variables supprimées avant l'entraînement
 DROPPED_FEATURES = [
     "OBJECT_NAME",
