@@ -6,28 +6,30 @@ Fichier : feature_importance.py
 
 Description :
 Calcule l'importance des variables à l'aide
-d'une Random Forest.
+d'un modèle Random Forest.
 
 Responsabilités :
     - Charger le dataset nettoyé
-    - Préparer X et y
-    - Séparer Train/Test
+    - Préparer les données
     - Entraîner une Random Forest
     - Calculer l'importance des variables
-    - Afficher les résultats
+    - Sauvegarder les résultats
+    - Générer le graphique
 
 ============================================================
 """
+
 # ==========================================================
 # Bibliothèques tierces
 # ==========================================================
+
+import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 
 # ==========================================================
 # Modules du projet
 # ==========================================================
+
 from src.config import (
     CLEAN_DATASET_FILE,
     NUMERICAL_FEATURES,
@@ -35,13 +37,23 @@ from src.config import (
     FEATURE_IMPORTANCE_FILE,
     FEATURE_IMPORTANCE_FIGURE,
 )
+
 from src.data.io import load_csv_dataset
-import matplotlib.pyplot as plt
+
+from src.features.pipeline import prepare_dataset
+
+from src.models.training import train_random_forest
+
 from src.utils import ensure_directory
+
 
 def load_clean_dataset() -> pd.DataFrame:
     """
     Charge le dataset nettoyé.
+
+    Returns
+    -------
+    pd.DataFrame
     """
 
     return load_csv_dataset(
@@ -49,86 +61,8 @@ def load_clean_dataset() -> pd.DataFrame:
     )
 
 
-def prepare_dataset(
-    dataframe: pd.DataFrame,
-) -> tuple[pd.DataFrame, pd.Series]:
-    """
-    Prépare X et y.
-
-    Returns
-    -------
-    tuple
-        X, y
-    """
-
-    X = dataframe[
-        NUMERICAL_FEATURES
-    ]
-
-    y = dataframe[
-        TARGET_COLUMN
-    ]
-
-    return X, y
-
-
-def split_dataset(
-    X: pd.DataFrame,
-    y: pd.Series,
-) -> tuple[
-    pd.DataFrame,
-    pd.DataFrame,
-    pd.Series,
-    pd.Series,
-]:
-    """
-    Sépare les données en ensembles
-    d'entraînement et de test.
-
-    Parameters
-    ----------
-    X : pd.DataFrame
-        Variables explicatives.
-
-    y : pd.Series
-        Variable cible.
-
-    Returns
-    -------
-    tuple
-        X_train, X_test,
-        y_train, y_test
-    """
-
-    return train_test_split(
-        X,
-        y,
-        test_size=0.20,
-        stratify=y,
-        random_state=42,
-    )
-
-
-def train_random_forest(
-    X_train: pd.DataFrame,
-    y_train: pd.Series,
-) -> RandomForestClassifier:
-
-    model = RandomForestClassifier(
-        n_estimators=100,
-        random_state=42,
-    )
-
-    model.fit(
-        X_train,
-        y_train,
-    )
-
-    return model
-
-
 def compute_feature_importance(
-    model: RandomForestClassifier,
+    model,
     feature_names: list[str],
 ) -> pd.DataFrame:
     """
@@ -136,8 +70,9 @@ def compute_feature_importance(
 
     Parameters
     ----------
-    model : RandomForestClassifier
-        Modèle entraîné.
+    model
+        Modèle entraîné possédant l'attribut
+        feature_importances_.
 
     feature_names : list[str]
         Liste des variables.
@@ -158,10 +93,11 @@ def compute_feature_importance(
     importance_df = importance_df.sort_values(
         by="Importance",
         ascending=False,
-    ).reset_index(drop=True)
+    ).reset_index(
+        drop=True,
+    )
 
     return importance_df
-
 
 
 def save_feature_importance(
@@ -180,7 +116,7 @@ def save_feature_importance(
     """
 
     ensure_directory(
-        FEATURE_IMPORTANCE_FILE.parent
+        FEATURE_IMPORTANCE_FILE.parent,
     )
 
     dataframe.to_csv(
@@ -198,26 +134,40 @@ def plot_feature_importance(
     dataframe: pd.DataFrame,
 ) -> None:
     """
-    Affiche l'importance des variables.
+    Génère le graphique des importances.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+
+    Returns
+    -------
+    None
     """
 
     ensure_directory(
-        FEATURE_IMPORTANCE_FIGURE.parent
+        FEATURE_IMPORTANCE_FIGURE.parent,
     )
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(
+        figsize=(10, 6),
+    )
 
     plt.barh(
         dataframe["Feature"],
         dataframe["Importance"],
     )
 
-    plt.xlabel("Importance")
+    plt.xlabel(
+        "Importance",
+    )
 
-    plt.ylabel("Variables")
+    plt.ylabel(
+        "Variables",
+    )
 
     plt.title(
-        "Importance des variables"
+        "Feature Importance (Random Forest)",
     )
 
     plt.gca().invert_yaxis()
@@ -237,7 +187,11 @@ def plot_feature_importance(
 
     plt.close()
 
+
 def main() -> None:
+    """
+    Test du module.
+    """
 
     print("=" * 60)
     print("FEATURE IMPORTANCE")
@@ -245,42 +199,48 @@ def main() -> None:
 
     dataframe = load_clean_dataset()
 
-    X, y = prepare_dataset(
-        dataframe,
-    )
-
-    X_train, X_test, y_train, y_test = split_dataset(
-        X,
-        y,
+    data = prepare_dataset(
+        dataframe=dataframe,
+        feature_names=NUMERICAL_FEATURES,
+        target_column=TARGET_COLUMN,
+        scale=False,
     )
 
     print()
+
     print("Train/Test Split")
+
     print("-" * 60)
-    print(f"X_train : {X_train.shape}")
-    print(f"X_test  : {X_test.shape}")
-    print(f"y_train : {y_train.shape}")
-    print(f"y_test  : {y_test.shape}")
+
+    print(f"X_train : {data['X_train'].shape}")
+    print(f"X_test  : {data['X_test'].shape}")
+    print(f"y_train : {data['y_train'].shape}")
+    print(f"y_test  : {data['y_test'].shape}")
 
     model = train_random_forest(
-        X_train,
-        y_train,
+        data["X_train"],
+        data["y_train"],
     )
 
     importance_df = compute_feature_importance(
         model,
-        NUMERICAL_FEATURES,
+        data["feature_names"],
     )
 
     print()
+
     print("=" * 60)
     print("FEATURE IMPORTANCE")
     print("=" * 60)
 
+    print()
+
     print(importance_df)
 
+    print()
+
     save_feature_importance(
-    importance_df,
+        importance_df,
     )
 
     plot_feature_importance(
@@ -288,9 +248,11 @@ def main() -> None:
     )
 
     print()
+
     print("=" * 60)
-    print("RANDOM FOREST")
+    print("MODEL")
     print("=" * 60)
+
     print(model)
 
 

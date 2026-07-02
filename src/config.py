@@ -148,3 +148,16 @@ TARGET_COLUMN = "LABEL"
 # ==========================================================
 
 SIGNIFICANCE_LEVEL = 0.05
+
+# ==========================================================
+# Modèles
+# ==========================================================
+
+MODELS_DIR = PROJECT_ROOT / "models"
+
+MODELS_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+RANDOM_FOREST_MODEL = "random_forest.joblib"
