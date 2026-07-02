@@ -53,6 +53,15 @@ TABLES_DIR = REPORTS_DIR / "tables"
 
 LOGS_DIR = REPORTS_DIR / "logs"
 
+FEATURE_IMPORTANCE_FILE = (
+    TABLES_DIR /
+    "feature_importance.csv"
+)
+
+FEATURE_IMPORTANCE_FIGURE = (
+    FIGURES_DIR /
+    "feature_importance.png"
+)
 
 # ==========================================================
 # Jeux de données d'entraînement
@@ -119,3 +128,9 @@ DROPPED_FEATURES = [
 
 # Variable cible
 TARGET_COLUMN = "LABEL"
+
+# ==========================================================
+# Paramètres statistiques
+# ==========================================================
+
+SIGNIFICANCE_LEVEL = 0.05

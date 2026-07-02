@@ -125,6 +125,42 @@ def plot_correlation_heatmap(
         "correlation_matrix.png",
     )
 
+
+def analyze_correlations(
+    dataframe: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Calcule et affiche la matrice de corrélation.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        Dataset nettoyé.
+
+    Returns
+    -------
+    pd.DataFrame
+        Matrice de corrélation.
+    """
+
+    print("=" * 60)
+    print("MATRICE DE CORRÉLATION")
+    print("=" * 60)
+
+    correlation_matrix = compute_correlation_matrix(
+        dataframe,
+    )
+
+    print(correlation_matrix)
+
+    plot_correlation_heatmap(
+        correlation_matrix,
+    )
+
+    return correlation_matrix
+
+
+
 def main() -> None:
 
     dataframe = load_clean_dataset()
